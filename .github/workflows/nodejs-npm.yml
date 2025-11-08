@@ -1,28 +1,44 @@
-name: Source Upload
+name: Polaris Scan with Source Upload
                                                                                                                                                                                                                                          
 on:
   push:
-    branches: [ main ]
+    branches: [main, master, develop, stage, release]
   pull_request:
-    branches: [ main ]
-                                                                                                                                                                                                                                         
+    branches: [main, master, develop, stage, release]
+
 jobs:
   polaris-scan:
-    runs-on: [mac-arm-sh]
-                                                                                                                                                                                                                                         
-    steps:
+    runs-on: [ macos-latest ]
     
+    defaults:
+      run:
+        working-directory: ${{ github.workspace }}/nodejs-npm
+
+    steps:
     - name: Checkout Source
       uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'  
+   
+    - name: Install dependencies
+      run: npm install  
+
+    - name: Build Project
+      run: |
+        npm rebuild
                                                                                                                                                                                                                                          
-    - name: Polaris Scan
+    - name: Polaris Scan with Source Upload
       uses: blackduck-inc/black-duck-security-scan@v2
       with:
-        polaris_server_url: ${{ vars.POLARIS_SERVER_URL }}
+        polaris_server_url: ${{ secrets.POLARIS_SERVER_URL }}
         polaris_access_token: ${{ secrets.POLARIS_ACCESS_TOKEN }}
         github_token: ${{ secrets.GITHUB_TOKEN }}
         polaris_assessment_types: "SCA,SAST"
         polaris_test_sast_location: "remote"
+        polaris_test_sca_location: "remote"
         project_directory: ${{ github.workspace }}/nodejs-npm
 
       
